@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { dataSourceOptions } from './config/typeorm.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { GiftsModule } from './modules/gifts/gifts.module';
 
 @Module({
   imports: [
@@ -15,8 +16,9 @@ import { UsersModule } from './modules/users/users.module';
     TypeOrmModule.forRoot(dataSourceOptions),
     AuthModule,
     UsersModule,
+    GiftsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
