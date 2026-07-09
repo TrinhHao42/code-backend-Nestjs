@@ -13,7 +13,8 @@ export class UsersService {
   async create(userData: Partial<User>): Promise<User> {
     const user = this.usersRepository.create(userData);
     const savedUser = await this.usersRepository.save(user);
-    // Loại bỏ trường password khỏi object trả về
+
+    // Loại bỏ trường password trước khi trả về response
     const result = { ...savedUser };
     delete (result as Partial<User>).password;
     return result;
@@ -44,5 +45,13 @@ export class UsersService {
     return this.usersRepository.findOne({
       where: { id },
     });
+  }
+
+  async updateProfile(
+    userId: string,
+    updateData: Partial<User>,
+  ): Promise<User | null> {
+    await this.usersRepository.update(userId, updateData);
+    return this.findOne(userId);
   }
 }
