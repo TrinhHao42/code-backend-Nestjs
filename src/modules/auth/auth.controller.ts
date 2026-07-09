@@ -18,6 +18,15 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
+  @Post('admin/register')
+  @ApiOperation({ summary: 'Đăng ký tài khoản Admin mới' })
+  @ApiResponse({ status: 201, description: 'Đăng ký Admin thành công' })
+  @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
+  @ApiResponse({ status: 409, description: 'Email đã tồn tại' })
+  async registerAdmin(@Body() registerDto: RegisterDto) {
+    return this.authService.registerAdmin(registerDto);
+  }
+
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Đăng nhập người dùng' })
