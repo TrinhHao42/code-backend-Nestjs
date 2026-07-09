@@ -8,7 +8,7 @@ import { AdminLoginDto } from './dto/admin-login.dto';
 @ApiTags('Authentication')
 @Controller('api/v1/auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   @ApiOperation({ summary: 'Đăng ký tài khoản người dùng mới' })

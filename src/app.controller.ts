@@ -1,12 +1,40 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Controller, Get, Render } from '@nestjs/common';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @Render('index')
+  root() {
+    return {};
+  }
+
+  @Get('login')
+  @Render('login')
+  loginPage() {
+    return {};
+  }
+
+  @Get('register')
+  @Render('register')
+  registerPage() {
+    return {};
+  }
+
+  @Get('profile')
+  @Render('profile')
+  profilePage() {
+    return {};
+  }
+
+  @Get('admin/gifts-management')
+  @Render('admin-dashboard')
+  adminDashboard() {
+    return {};
+  }
+
+  @Get('gifts/:id')
+  @Render('gift-detail')
+  giftDetailPage() {
+    return {};
   }
 }

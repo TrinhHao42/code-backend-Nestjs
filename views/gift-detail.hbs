@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Quà Tặng - GiftShop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        main {
+            flex: 1;
+            padding: 3rem 2rem;
+            max-width: 700px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .detail-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .gift-status {
+            position: absolute;
+            top: 2rem;
+            right: 2.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-available {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-unavailable {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+        }
+
+        h2 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-right: 6rem;
+        }
+
+        .points-box {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .description {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        .meta-info {
+            display: flex;
+            justify-content: space-between;
+            background-color: rgba(15, 23, 42, 0.3);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .meta-item span {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .meta-item strong {
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="logo">GiftShop</a>
+        <div>
+            <a href="/" id="backLink" style="color:var(--text-main); text-decoration:none;">Quay lại</a>
+        </div>
+    </header>
+
+    <main>
+        <div class="detail-card">
+            <span id="giftStatus" class="gift-status"></span>
+            <h2 id="giftName">Đang tải...</h2>
+            <div id="giftPoints" class="points-box">-- Điểm</div>
+            <div id="giftDesc" class="description">Đang tải thông tin chi tiết quà tặng...</div>
+            <div class="meta-info">
+                <div class="meta-item">
+                    <span>Số lượng trong kho</span>
+                    <strong id="giftStock">--</strong>
+                </div>
+                <div class="meta-item">
+                    <span>Ngày cập nhật</span>
+                    <strong id="giftDate">--/--/----</strong>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Lấy ID từ URL
+        const pathParts = window.location.pathname.split('/');
+        const giftId = pathParts[pathParts.length - 1];
+        
+        const token = localStorage.getItem('accessToken');
+        const role = localStorage.getItem('userRole');
+
+        // Điều chỉnh link quay lại
+        const backLink = document.getElementById('backLink');
+        if (role === 'admin') {
+            backLink.href = '/admin/gifts-management';
+        } else {
+            backLink.href = '/';
+        }
+
+        async function fetchGiftDetail() {
+            // Admin có quyền xem cả quà bị ẩn, user chỉ xem quà available
+            const url = role === 'admin' ? `/api/v1/admin/gifts/${giftId}` : `/api/v1/gifts/${giftId}`;
+            const headers = {};
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            try {
+                const response = await fetch(url, { headers });
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        document.getElementById('giftDesc').innerText = 'Không tìm thấy sản phẩm quà tặng này.';
+                        return;
+                    }
+                    throw new Error('Lỗi tải chi tiết quà tặng');
+                }
+
+                const gift = await response.json();
+                document.getElementById('giftName').innerText = gift.name;
+                document.getElementById('giftPoints').innerText = `${gift.pointsRequired} Điểm`;
+                document.getElementById('giftDesc').innerText = gift.description || 'Chưa có mô tả chi tiết cho sản phẩm này.';
+                document.getElementById('giftStock').innerText = `${gift.stock} chiếc`;
+                
+                const date = new Date(gift.updatedAt);
+                document.getElementById('giftDate').innerText = date.toLocaleDateString('vi-VN');
+
+                const statusBadge = document.getElementById('giftStatus');
+                if (gift.isAvailable) {
+                    statusBadge.innerText = 'Sẵn sàng đổi';
+                    statusBadge.className = 'gift-status status-available';
+                } else {
+                    statusBadge.innerText = 'Tạm ẩn';
+                    statusBadge.className = 'gift-status status-unavailable';
+                }
+            } catch (err) {
+                document.getElementById('giftDesc').innerText = err.message;
+            }
+        }
+
+        if (giftId) {
+            fetchGiftDetail();
+        }
+    </script>
+</body>
+</html>

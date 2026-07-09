@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ Sơ Cá Nhân - GiftShop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --success-color: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        main {
+            flex: 1;
+            padding: 3rem 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .profile-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        input {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        input:focus:not(:disabled) {
+            border-color: var(--accent-color);
+        }
+
+        .btn-update {
+            background-color: var(--accent-color);
+            color: var(--text-main);
+            border: none;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-update:hover {
+            background-color: var(--accent-hover);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="logo">GiftShop</a>
+        <div>
+            <a href="/" style="color:var(--text-main); text-decoration:none;">Quay lại Trang chủ</a>
+        </div>
+    </header>
+
+    <main>
+        <div class="profile-card">
+            <h2>Hồ sơ cá nhân</h2>
+            <form id="profileForm" onsubmit="updateProfile(event)">
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label>Email (Tài khoản)</label>
+                    <input type="email" id="email" disabled>
+                </div>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label>Họ và tên</label>
+                    <input type="text" id="fullName" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label>Vai trò</label>
+                    <input type="text" id="role" disabled>
+                </div>
+                <button type="submit" class="btn-update">Cập nhật thông tin</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            window.location.href = '/login';
+        }
+
+        // Tải thông tin Profile cá nhân
+        async function fetchProfile() {
+            try {
+                const response = await fetch('/api/v1/users/profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.status === 401) {
+                    localStorage.clear();
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const data = await response.json();
+                document.getElementById('email').value = data.email;
+                document.getElementById('fullName').value = data.fullName;
+                document.getElementById('role').value = data.role.toUpperCase();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Cập nhật Profile cá nhân
+        async function updateProfile(e) {
+            e.preventDefault();
+            const fullName = document.getElementById('fullName').value;
+
+            try {
+                const response = await fetch('/api/v1/users/profile', {
+                    method: 'PATCH',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ fullName })
+                });
+
+                if (response.ok) {
+                    alert('Cập nhật thông tin profile thành công!');
+                    fetchProfile();
+                } else {
+                    const data = await response.json();
+                    throw new Error(data.message || 'Cập nhật không thành công');
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        fetchProfile();
+    </script>
+</body>
+</html>

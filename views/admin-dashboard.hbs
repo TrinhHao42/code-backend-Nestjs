@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Quà Tặng (Admin) - GiftShop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        main {
+            flex: 1;
+            padding: 3rem 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .gift-form-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        input, textarea, select {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--accent-color);
+        }
+
+        .btn-action {
+            background-color: var(--accent-color);
+            color: var(--text-main);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-action:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .gifts-table-container {
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--bg-secondary);
+            text-align: left;
+        }
+
+        th, td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: rgba(15, 23, 42, 0.5);
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-table-edit {
+            background-color: var(--success-color);
+            color: var(--text-main);
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-table-delete {
+            background-color: var(--error-color);
+            color: var(--text-main);
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/" class="logo">GiftShop Admin</a>
+        <div>
+            <a href="/" style="color:var(--text-main); text-decoration:none;">Quay lại Trang chủ</a>
+        </div>
+    </header>
+
+    <main>
+        <div class="gift-form-card">
+            <h2 id="formTitle" style="margin-bottom: 1.5rem;">Thêm Quà Tặng Mới</h2>
+            <form id="giftForm" onsubmit="saveGift(event)">
+                <input type="hidden" id="giftId">
+                <div class="form-grid" style="margin-bottom: 1.5rem;">
+                    <div class="form-group">
+                        <label for="name">Tên quà tặng</label>
+                        <input type="text" id="name" required placeholder="Bình giữ nhiệt, sách...">
+                    </div>
+                    <div class="form-group">
+                        <label for="pointsRequired">Điểm yêu cầu</label>
+                        <input type="number" id="pointsRequired" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="stock">Số lượng trong kho</label>
+                        <input type="number" id="stock" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="isAvailable">Trạng thái sẵn có</label>
+                        <select id="isAvailable">
+                            <option value="true">Hiển thị</option>
+                            <option value="false">Ẩn</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label for="description">Mô tả chi tiết</label>
+                    <textarea id="description" rows="3" placeholder="Mô tả chi tiết về sản phẩm..."></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn-action" id="btnSubmit">Lưu sản phẩm</button>
+                    <button type="button" class="btn-action" style="background-color: var(--border-color);" onclick="resetForm()">Hủy bỏ</button>
+                </div>
+            </form>
+        </div>
+
+        <div>
+            <h2 style="margin-bottom: 1.5rem;">Danh sách quà tặng hệ thống</h2>
+            <div class="gifts-table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tên sản phẩm</th>
+                            <th>Điểm yêu cầu</th>
+                            <th>Tồn kho</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="giftsTableBody">
+                        <!-- Render danh sách quà tặng của admin -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('accessToken');
+        const role = localStorage.getItem('userRole');
+
+        if (!token || role !== 'admin') {
+            alert('Bạn không có quyền truy cập vào trang quản trị');
+            window.location.href = '/login';
+        }
+
+        async function fetchGiftsAdmin() {
+            try {
+                const response = await fetch('/api/v1/admin/gifts', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Không thể tải danh sách quà tặng');
+                
+                const gifts = await response.json();
+                const tbody = document.getElementById('giftsTableBody');
+                
+                tbody.innerHTML = gifts.map(gift => `
+                    <tr>
+                        <td style="font-weight: 600;">
+                            <a href="/gifts/${gift.id}" style="color: inherit; text-decoration: none; border-bottom: 1px dashed var(--accent-color); padding-bottom: 2px;">
+                                ${gift.name}
+                            </a>
+                        </td>
+                        <td style="color: var(--accent-color); font-weight:700;">${gift.pointsRequired}</td>
+                        <td>${gift.stock}</td>
+                        <td>
+                            <span style="color: ${gift.isAvailable ? 'var(--success-color)' : 'var(--error-color)'}">
+                                ${gift.isAvailable ? 'Hiển thị' : 'Ẩn'}
+                            </span>
+                        </td>
+                        <td class="actions-cell">
+                            <button class="btn-table-edit" onclick="editGift('${gift.id}')">Sửa</button>
+                            <button class="btn-table-delete" onclick="deleteGift('${gift.id}')">Xóa</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function saveGift(e) {
+            e.preventDefault();
+            const id = document.getElementById('giftId').value;
+            const name = document.getElementById('name').value;
+            const pointsRequired = parseInt(document.getElementById('pointsRequired').value);
+            const stock = parseInt(document.getElementById('stock').value);
+            const isAvailable = document.getElementById('isAvailable').value === 'true';
+            const description = document.getElementById('description').value;
+
+            const payload = { name, pointsRequired, stock, isAvailable, description };
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/api/v1/admin/gifts/${id}` : '/api/v1/admin/gifts';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    let errMsg = data.message;
+                    if (Array.isArray(data.message)) {
+                        errMsg = data.message.join('\n');
+                    }
+                    throw new Error(errMsg || 'Lỗi lưu thông tin sản phẩm');
+                }
+
+                alert('Lưu sản phẩm quà tặng thành công!');
+                resetForm();
+                fetchGiftsAdmin();
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        async function editGift(id) {
+            try {
+                const response = await fetch(`/api/v1/admin/gifts/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Không thể lấy chi tiết sản phẩm');
+                
+                const gift = await response.json();
+                document.getElementById('giftId').value = gift.id;
+                document.getElementById('name').value = gift.name;
+                document.getElementById('pointsRequired').value = gift.pointsRequired;
+                document.getElementById('stock').value = gift.stock;
+                document.getElementById('isAvailable').value = gift.isAvailable.toString();
+                document.getElementById('description').value = gift.description || '';
+                
+                document.getElementById('formTitle').innerText = 'Chỉnh Sửa Quà Tặng';
+                document.getElementById('btnSubmit').innerText = 'Cập nhật sản phẩm';
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        async function deleteGift(id) {
+            if (!confirm('Bạn có chắc chắn muốn xóa phần quà này khỏi hệ thống?')) return;
+
+            try {
+                const response = await fetch(`/api/v1/admin/gifts/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    alert('Đã xóa quà tặng thành công!');
+                    fetchGiftsAdmin();
+                } else {
+                    throw new Error('Xóa quà tặng thất bại');
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('giftId').value = '';
+            document.getElementById('giftForm').reset();
+            document.getElementById('formTitle').innerText = 'Thêm Quà Tặng Mới';
+            document.getElementById('btnSubmit').innerText = 'Lưu sản phẩm';
+        }
+
+        fetchGiftsAdmin();
+    </script>
+</body>
+</html>
