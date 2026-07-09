@@ -29,7 +29,7 @@ import { UserRole } from '../users/entities/user.entity';
 @ApiTags('Gifts')
 @Controller('api/v1')
 export class GiftsController {
-  constructor(private readonly giftsService: GiftsService) {}
+  constructor(private readonly giftsService: GiftsService) { }
 
   // Các Api của user
 
@@ -152,7 +152,7 @@ export class GiftsController {
   @Delete('admin/gifts/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Xóa quà tặng khỏi hệ thống (Admin)' })
-  @ApiResponse({ status: 24, description: 'Xóa thành công' })
+  @ApiResponse({ status: 200, description: 'Xóa thành công' })
   @ApiResponse({ status: 404, description: 'Không tìm thấy quà cần xóa' })
   async deleteGift(
     @Param(
