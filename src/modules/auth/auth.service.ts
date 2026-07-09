@@ -38,6 +38,29 @@ export class AuthService {
     return newUser;
   }
 
+  async registerAdmin(
+    registerDto: RegisterDto,
+  ): Promise<Omit<User, 'password'>> {
+    const { email, password, fullName } = registerDto;
+
+    const isEmailExist = await this.usersService.findByEmail(email);
+    if (isEmailExist) {
+      throw new ConflictException('Email này đã được đăng ký sử dụng');
+    }
+
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newAdmin = await this.usersService.create({
+      email,
+      password: hashedPassword,
+      fullName,
+      role: UserRole.ADMIN,
+    });
+
+    return newAdmin;
+  }
+
   async login(loginDto: LoginDto): Promise<{ accessToken: string }> {
     const user = await this.validateUser(loginDto);
     return this.generateToken(user);
