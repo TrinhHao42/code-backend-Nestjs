@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
@@ -72,7 +67,7 @@ export class AuthService {
     const user = await this.validateUser(loginDto);
 
     if (user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException(ErrorMessages.ADMIN_ACCESS_DENIED);
+      throw new BadRequestException(ErrorMessages.INCORRECT_EMAIL_PASSWORD);
     }
 
     return this.generateToken(user);

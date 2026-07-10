@@ -6,6 +6,7 @@ import { UserResponseDto } from '../users/dto/user-response.dto';
 
 import { AuthService } from './auth.service';
 import { AdminLoginDto } from './dto/admin-login.dto';
+import { AuthResponseDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
@@ -49,8 +50,11 @@ export class AuthController {
     status: 400,
     description: 'Email hoặc mật khẩu không chính xác',
   })
-  async login(@Body() loginDto: LoginDto): Promise<{ accessToken: string }> {
-    return this.authService.login(loginDto);
+  async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
+    const result = await this.authService.login(loginDto);
+    return plainToInstance(AuthResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Post('admin/login')
@@ -64,11 +68,10 @@ export class AuthController {
     status: 400,
     description: 'Email hoặc mật khẩu không chính xác',
   })
-  @ApiResponse({
-    status: 403,
-    description: 'Bạn không có quyền truy cập vào khu vực Admin',
-  })
-  async adminLogin(@Body() adminLoginDto: AdminLoginDto): Promise<{ accessToken: string }> {
-    return this.authService.adminLogin(adminLoginDto);
+  async adminLogin(@Body() adminLoginDto: AdminLoginDto): Promise<AuthResponseDto> {
+    const result = await this.authService.adminLogin(adminLoginDto);
+    return plainToInstance(AuthResponseDto, result, {
+      excludeExtraneousValues: true,
+    });
   }
 }
