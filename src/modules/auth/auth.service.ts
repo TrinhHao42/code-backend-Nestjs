@@ -1,14 +1,17 @@
 import {
   ConflictException,
   Injectable,
-  UnauthorizedException,
+  BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
-import { User, UserRole } from '../users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
+
+import { User, UserRole } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
+
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -38,9 +41,7 @@ export class AuthService {
     return newUser;
   }
 
-  async registerAdmin(
-    registerDto: RegisterDto,
-  ): Promise<Omit<User, 'password'>> {
+  async registerAdmin(registerDto: RegisterDto): Promise<Omit<User, 'password'>> {
     const { email, password, fullName } = registerDto;
 
     const isEmailExist = await this.usersService.findByEmail(email);
@@ -70,9 +71,7 @@ export class AuthService {
     const user = await this.validateUser(loginDto);
 
     if (user.role !== UserRole.ADMIN) {
-      throw new UnauthorizedException(
-        'Bạn không có quyền truy cập vào khu vực Admin',
-      );
+      throw new ForbiddenException('Bạn không có quyền truy cập vào khu vực Admin');
     }
 
     return this.generateToken(user);
@@ -83,7 +82,7 @@ export class AuthService {
     const user = await this.usersService.findByEmailWithPassword(email);
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException('Email hoặc mật khẩu không chính xác');
+      throw new BadRequestException('Email hoặc mật khẩu không chính xác');
     }
 
     return user;

@@ -11,25 +11,26 @@ import {
   HttpStatus,
   NotFoundException,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import { GiftsService } from './gifts.service';
-import { CreateGiftDto } from './dto/create-gift.dto';
-import { UpdateGiftDto } from './dto/update-gift.dto';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
+
+import { Roles } from '../../common/decorators/roles.decorator';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
+
+import { CreateGiftDto } from './dto/create-gift.dto';
+import { GiftResponseDto } from './dto/gift-response.dto';
+import { UpdateGiftDto } from './dto/update-gift.dto';
+import { GiftsService } from './gifts.service';
 
 @ApiTags('Gifts')
 @Controller('api/v1')
 export class GiftsController {
-  constructor(private readonly giftsService: GiftsService) { }
+  constructor(private readonly giftsService: GiftsService) {}
 
   // Các Api của user
 
@@ -38,8 +39,21 @@ export class GiftsController {
     summary: 'Xem danh sách quà tặng khả dụng của hệ thống (User)',
   })
   @ApiResponse({ status: 200, description: 'Lấy danh sách thành công' })
-  async getGifts() {
-    return this.giftsService.findAllAvailable();
+  async getGifts(@Query() query: PaginationQueryDto) {
+    const { data, total } = await this.giftsService.findAllAvailable(query);
+    const limit = query.limit || 10;
+    const page = query.page || 1;
+    return {
+      data: plainToInstance(GiftResponseDto, data, {
+        excludeExtraneousValues: true,
+      }),
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   @Get('gifts/:id')
@@ -55,20 +69,18 @@ export class GiftsController {
       new ParseUUIDPipe({
         errorHttpStatusCode: HttpStatus.NOT_FOUND,
         exceptionFactory: () =>
-          new NotFoundException(
-            'Không tìm thấy quà tặng phù hợp hoặc quà đã bị ẩn',
-          ),
+          new NotFoundException('Không tìm thấy quà tặng phù hợp hoặc quà đã bị ẩn'),
       }),
     )
     id: string,
   ) {
     const gift = await this.giftsService.findOne(id);
     if (!gift || !gift.isAvailable) {
-      throw new NotFoundException(
-        'Không tìm thấy quà tặng phù hợp hoặc quà đã bị ẩn',
-      );
+      throw new NotFoundException('Không tìm thấy quà tặng phù hợp hoặc quà đã bị ẩn');
     }
-    return gift;
+    return plainToInstance(GiftResponseDto, gift, {
+      excludeExtraneousValues: true,
+    });
   }
 
   // Các Api của admin
@@ -82,7 +94,10 @@ export class GiftsController {
   @ApiResponse({ status: 401, description: 'Chưa đăng nhập' })
   @ApiResponse({ status: 403, description: 'Không có quyền Admin' })
   async createGift(@Body() createGiftDto: CreateGiftDto) {
-    return this.giftsService.create(createGiftDto);
+    const gift = await this.giftsService.create(createGiftDto);
+    return plainToInstance(GiftResponseDto, gift, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @ApiBearerAuth()
@@ -91,8 +106,21 @@ export class GiftsController {
   @Get('admin/gifts')
   @ApiOperation({ summary: 'Xem tất cả quà tặng (Admin)' })
   @ApiResponse({ status: 200, description: 'Lấy danh sách thành công' })
-  async getAllGiftsAdmin() {
-    return this.giftsService.findAll();
+  async getAllGiftsAdmin(@Query() query: PaginationQueryDto) {
+    const { data, total } = await this.giftsService.findAll(query);
+    const limit = query.limit || 10;
+    const page = query.page || 1;
+    return {
+      data: plainToInstance(GiftResponseDto, data, {
+        excludeExtraneousValues: true,
+      }),
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   @ApiBearerAuth()
@@ -107,8 +135,7 @@ export class GiftsController {
       'id',
       new ParseUUIDPipe({
         errorHttpStatusCode: HttpStatus.NOT_FOUND,
-        exceptionFactory: () =>
-          new NotFoundException('Không tìm thấy quà tặng'),
+        exceptionFactory: () => new NotFoundException('Không tìm thấy quà tặng'),
       }),
     )
     id: string,
@@ -117,7 +144,9 @@ export class GiftsController {
     if (!gift) {
       throw new NotFoundException('Không tìm thấy quà tặng');
     }
-    return gift;
+    return plainToInstance(GiftResponseDto, gift, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @ApiBearerAuth()
@@ -132,8 +161,7 @@ export class GiftsController {
       'id',
       new ParseUUIDPipe({
         errorHttpStatusCode: HttpStatus.NOT_FOUND,
-        exceptionFactory: () =>
-          new NotFoundException('Không tìm thấy quà tặng để cập nhật'),
+        exceptionFactory: () => new NotFoundException('Không tìm thấy quà tặng để cập nhật'),
       }),
     )
     id: string,
@@ -143,7 +171,9 @@ export class GiftsController {
     if (!gift) {
       throw new NotFoundException('Không tìm thấy quà tặng để cập nhật');
     }
-    return gift;
+    return plainToInstance(GiftResponseDto, gift, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @ApiBearerAuth()
@@ -159,8 +189,7 @@ export class GiftsController {
       'id',
       new ParseUUIDPipe({
         errorHttpStatusCode: HttpStatus.NOT_FOUND,
-        exceptionFactory: () =>
-          new NotFoundException('Không tìm thấy quà tặng để xóa'),
+        exceptionFactory: () => new NotFoundException('Không tìm thấy quà tặng để xóa'),
       }),
     )
     id: string,

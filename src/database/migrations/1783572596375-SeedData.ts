@@ -1,5 +1,5 @@
-import { MigrationInterface, QueryRunner } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class SeedData1783572596375 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -29,15 +29,55 @@ export class SeedData1783572596375 implements MigrationInterface {
             `);
     }
 
-    await queryRunner.query(`
-            INSERT INTO "gifts" ("name", "description", "pointsRequired", "stock", "isAvailable")
-            VALUES 
-            ('Bình giữ nhiệt Lock&Lock', 'Dung tích 500ml, giữ nhiệt tốt, chất liệu thép không gỉ', 100, 50, true),
-            ('Sách Đắc Nhân Tâm', 'Cuốn sách bán chạy nhất mọi thời đại về nghệ thuật ứng xử', 50, 30, true),
-            ('Chuột không dây Logitech', 'Chuột Silent kết nối Bluetooth và Receiver 2.4G', 200, 20, true),
-            ('Tai nghe Bluetooth Sony', 'Tai nghe chụp tai có chống ồn chủ động, pin 30h', 500, 10, true),
-            ('Balo laptop chống nước', 'Chứa vừa laptop 15.6 inch, thiết kế công thái học', 150, 40, true);
-        `);
+    const gifts = [
+      {
+        name: 'Bình giữ nhiệt Lock&Lock',
+        description: 'Dung tích 500ml, giữ nhiệt tốt, chất liệu thép không gỉ',
+        pointsRequired: 100,
+        stock: 50,
+        isAvailable: true,
+      },
+      {
+        name: 'Sách Đắc Nhân Tâm',
+        description: 'Cuốn sách bán chạy nhất mọi thời đại về nghệ thuật ứng xử',
+        pointsRequired: 50,
+        stock: 30,
+        isAvailable: true,
+      },
+      {
+        name: 'Chuột không dây Logitech',
+        description: 'Chuột Silent kết nối Bluetooth và Receiver 2.4G',
+        pointsRequired: 200,
+        stock: 20,
+        isAvailable: true,
+      },
+      {
+        name: 'Tai nghe Bluetooth Sony',
+        description: 'Tai nghe chụp tai có chống ồn chủ động, pin 30h',
+        pointsRequired: 500,
+        stock: 10,
+        isAvailable: true,
+      },
+      {
+        name: 'Balo laptop chống nước',
+        description: 'Chứa vừa laptop 15.6 inch, thiết kế công thái học',
+        pointsRequired: 150,
+        stock: 40,
+        isAvailable: true,
+      },
+    ];
+
+    for (const gift of gifts) {
+      const exists = (await queryRunner.query(`SELECT id FROM "gifts" WHERE "name" = $1 LIMIT 1;`, [
+        gift.name,
+      ])) as unknown[];
+      if (exists.length === 0) {
+        await queryRunner.query(
+          `INSERT INTO "gifts" ("name", "description", "pointsRequired", "stock", "isAvailable") VALUES ($1, $2, $3, $4, $5);`,
+          [gift.name, gift.description, gift.pointsRequired, gift.stock, gift.isAvailable],
+        );
+      }
+    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {

@@ -1,6 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
+
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
@@ -47,11 +50,41 @@ export class UsersService {
     });
   }
 
-  async updateProfile(
-    userId: string,
-    updateData: Partial<User>,
-  ): Promise<User | null> {
+  async findOneWithPassword(id: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        fullName: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  async updateProfile(userId: string, updateData: Partial<User>): Promise<User | null> {
     await this.usersRepository.update(userId, updateData);
     return this.findOne(userId);
+  }
+
+  async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<void> {
+    const { oldPassword, newPassword } = changePasswordDto;
+    const user = await this.findOneWithPassword(userId);
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy tài khoản người dùng');
+    }
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      throw new BadRequestException('Mật khẩu cũ không chính xác');
+    }
+
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await this.usersRepository.update(userId, { password: hashedPassword });
   }
 }

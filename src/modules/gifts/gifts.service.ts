@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Gift } from './entities/gift.entity';
 import { Repository } from 'typeorm';
+
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+
+import { Gift } from './entities/gift.entity';
 
 @Injectable()
 export class GiftsService {
@@ -10,10 +13,15 @@ export class GiftsService {
     private readonly giftRepository: Repository<Gift>,
   ) {}
 
-  async findAllAvailable(): Promise<Gift[]> {
-    return this.giftRepository.find({
+  async findAllAvailable(query: PaginationQueryDto): Promise<{ data: Gift[]; total: number }> {
+    const { page = 1, limit = 10 } = query;
+    const [data, total] = await this.giftRepository.findAndCount({
       where: { isAvailable: true },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC' },
     });
+    return { data, total };
   }
 
   async findOne(id: string): Promise<Gift | null> {
@@ -27,14 +35,17 @@ export class GiftsService {
     return this.giftRepository.save(gift);
   }
 
-  async findAll(): Promise<Gift[]> {
-    return this.giftRepository.find();
+  async findAll(query: PaginationQueryDto): Promise<{ data: Gift[]; total: number }> {
+    const { page = 1, limit = 10 } = query;
+    const [data, total] = await this.giftRepository.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC' },
+    });
+    return { data, total };
   }
 
-  async update(
-    id: string,
-    updateGiftData: Partial<Gift>,
-  ): Promise<Gift | null> {
+  async update(id: string, updateGiftData: Partial<Gift>): Promise<Gift | null> {
     await this.giftRepository.update(id, updateGiftData);
     return this.findOne(id);
   }
