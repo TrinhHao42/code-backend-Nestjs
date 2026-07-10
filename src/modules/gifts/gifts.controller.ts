@@ -39,7 +39,10 @@ export class GiftsController {
     summary: 'Xem danh sách quà tặng khả dụng của hệ thống (User)',
   })
   @ApiResponse({ status: 200, description: 'Lấy danh sách thành công' })
-  async getGifts(@Query() query: PaginationQueryDto) {
+  async getGifts(@Query() query: PaginationQueryDto): Promise<{
+    data: GiftResponseDto[];
+    meta: { total: number; page: number; limit: number; totalPages: number };
+  }> {
     const { data, total } = await this.giftsService.findAllAvailable(query);
     const limit = query.limit || 10;
     const page = query.page || 1;
@@ -73,7 +76,7 @@ export class GiftsController {
       }),
     )
     id: string,
-  ) {
+  ): Promise<GiftResponseDto> {
     const gift = await this.giftsService.findOne(id);
     if (!gift || !gift.isAvailable) {
       throw new NotFoundException('Không tìm thấy quà tặng phù hợp hoặc quà đã bị ẩn');
@@ -93,7 +96,7 @@ export class GiftsController {
   @ApiResponse({ status: 201, description: 'Tạo quà thành công' })
   @ApiResponse({ status: 401, description: 'Chưa đăng nhập' })
   @ApiResponse({ status: 403, description: 'Không có quyền Admin' })
-  async createGift(@Body() createGiftDto: CreateGiftDto) {
+  async createGift(@Body() createGiftDto: CreateGiftDto): Promise<GiftResponseDto> {
     const gift = await this.giftsService.create(createGiftDto);
     return plainToInstance(GiftResponseDto, gift, {
       excludeExtraneousValues: true,
@@ -106,7 +109,10 @@ export class GiftsController {
   @Get('admin/gifts')
   @ApiOperation({ summary: 'Xem tất cả quà tặng (Admin)' })
   @ApiResponse({ status: 200, description: 'Lấy danh sách thành công' })
-  async getAllGiftsAdmin(@Query() query: PaginationQueryDto) {
+  async getAllGiftsAdmin(@Query() query: PaginationQueryDto): Promise<{
+    data: GiftResponseDto[];
+    meta: { total: number; page: number; limit: number; totalPages: number };
+  }> {
     const { data, total } = await this.giftsService.findAll(query);
     const limit = query.limit || 10;
     const page = query.page || 1;
@@ -139,7 +145,7 @@ export class GiftsController {
       }),
     )
     id: string,
-  ) {
+  ): Promise<GiftResponseDto> {
     const gift = await this.giftsService.findOne(id);
     if (!gift) {
       throw new NotFoundException('Không tìm thấy quà tặng');
@@ -166,7 +172,7 @@ export class GiftsController {
     )
     id: string,
     @Body() updateGiftDto: UpdateGiftDto,
-  ) {
+  ): Promise<GiftResponseDto> {
     const gift = await this.giftsService.update(id, updateGiftDto);
     if (!gift) {
       throw new NotFoundException('Không tìm thấy quà tặng để cập nhật');
@@ -193,7 +199,7 @@ export class GiftsController {
       }),
     )
     id: string,
-  ) {
+  ): Promise<void> {
     const deleted = await this.giftsService.remove(id);
     if (!deleted) {
       throw new NotFoundException('Không tìm thấy quà tặng để xóa');

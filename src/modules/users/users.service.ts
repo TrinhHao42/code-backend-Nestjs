@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 
+import { deleteFile } from '../../common/utils/file-helper';
+
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { User } from './entities/user.entity';
 
@@ -67,6 +69,24 @@ export class UsersService {
 
   async updateProfile(userId: string, updateData: Partial<User>): Promise<User | null> {
     await this.usersRepository.update(userId, updateData);
+    return this.findOne(userId);
+  }
+
+  async updateAvatar(userId: string, avatarPath: string): Promise<User | null> {
+    const user = await this.findOne(userId);
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy tài khoản người dùng');
+    }
+
+    if (user.avatar) {
+      try {
+        deleteFile(user.avatar);
+      } catch {
+        // Bỏ qua lỗi nếu file không tồn tại
+      }
+    }
+
+    await this.usersRepository.update(userId, { avatar: avatarPath });
     return this.findOne(userId);
   }
 
