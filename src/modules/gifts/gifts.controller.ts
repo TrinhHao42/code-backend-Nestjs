@@ -16,6 +16,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 
+import { ErrorMessages } from '../../common/constants/error-messages.constant';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -71,15 +72,14 @@ export class GiftsController {
       'id',
       new ParseUUIDPipe({
         errorHttpStatusCode: HttpStatus.NOT_FOUND,
-        exceptionFactory: () =>
-          new NotFoundException('Không tìm thấy quà tặng phù hợp hoặc quà đã bị ẩn'),
+        exceptionFactory: () => new NotFoundException(ErrorMessages.GIFT_NOT_FOUND_OR_HIDDEN),
       }),
     )
     id: string,
   ): Promise<GiftResponseDto> {
     const gift = await this.giftsService.findOne(id);
     if (!gift || !gift.isAvailable) {
-      throw new NotFoundException('Không tìm thấy quà tặng phù hợp hoặc quà đã bị ẩn');
+      throw new NotFoundException(ErrorMessages.GIFT_NOT_FOUND_OR_HIDDEN);
     }
     return plainToInstance(GiftResponseDto, gift, {
       excludeExtraneousValues: true,
@@ -141,14 +141,14 @@ export class GiftsController {
       'id',
       new ParseUUIDPipe({
         errorHttpStatusCode: HttpStatus.NOT_FOUND,
-        exceptionFactory: () => new NotFoundException('Không tìm thấy quà tặng'),
+        exceptionFactory: () => new NotFoundException(ErrorMessages.GIFT_NOT_FOUND),
       }),
     )
     id: string,
   ): Promise<GiftResponseDto> {
     const gift = await this.giftsService.findOne(id);
     if (!gift) {
-      throw new NotFoundException('Không tìm thấy quà tặng');
+      throw new NotFoundException(ErrorMessages.GIFT_NOT_FOUND);
     }
     return plainToInstance(GiftResponseDto, gift, {
       excludeExtraneousValues: true,
@@ -167,7 +167,7 @@ export class GiftsController {
       'id',
       new ParseUUIDPipe({
         errorHttpStatusCode: HttpStatus.NOT_FOUND,
-        exceptionFactory: () => new NotFoundException('Không tìm thấy quà tặng để cập nhật'),
+        exceptionFactory: () => new NotFoundException(ErrorMessages.GIFT_NOT_FOUND_TO_UPDATE),
       }),
     )
     id: string,
@@ -175,7 +175,7 @@ export class GiftsController {
   ): Promise<GiftResponseDto> {
     const gift = await this.giftsService.update(id, updateGiftDto);
     if (!gift) {
-      throw new NotFoundException('Không tìm thấy quà tặng để cập nhật');
+      throw new NotFoundException(ErrorMessages.GIFT_NOT_FOUND_TO_UPDATE);
     }
     return plainToInstance(GiftResponseDto, gift, {
       excludeExtraneousValues: true,
@@ -195,14 +195,14 @@ export class GiftsController {
       'id',
       new ParseUUIDPipe({
         errorHttpStatusCode: HttpStatus.NOT_FOUND,
-        exceptionFactory: () => new NotFoundException('Không tìm thấy quà tặng để xóa'),
+        exceptionFactory: () => new NotFoundException(ErrorMessages.GIFT_NOT_FOUND_TO_DELETE),
       }),
     )
     id: string,
   ): Promise<void> {
     const deleted = await this.giftsService.remove(id);
     if (!deleted) {
-      throw new NotFoundException('Không tìm thấy quà tặng để xóa');
+      throw new NotFoundException(ErrorMessages.GIFT_NOT_FOUND_TO_DELETE);
     }
   }
 }

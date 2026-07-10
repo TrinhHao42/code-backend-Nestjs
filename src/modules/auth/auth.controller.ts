@@ -1,7 +1,8 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
 
-import { User } from '../users/entities/user.entity';
+import { UserResponseDto } from '../users/dto/user-response.dto';
 
 import { AuthService } from './auth.service';
 import { AdminLoginDto } from './dto/admin-login.dto';
@@ -18,8 +19,11 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'Đăng ký thành công' })
   @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
   @ApiResponse({ status: 409, description: 'Email đã tồn tại' })
-  async register(@Body() registerDto: RegisterDto): Promise<Omit<User, 'password'>> {
-    return this.authService.register(registerDto);
+  async register(@Body() registerDto: RegisterDto): Promise<UserResponseDto> {
+    const user = await this.authService.register(registerDto);
+    return plainToInstance(UserResponseDto, user, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Post('admin/register')
@@ -27,8 +31,11 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'Đăng ký Admin thành công' })
   @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
   @ApiResponse({ status: 409, description: 'Email đã tồn tại' })
-  async registerAdmin(@Body() registerDto: RegisterDto): Promise<Omit<User, 'password'>> {
-    return this.authService.registerAdmin(registerDto);
+  async registerAdmin(@Body() registerDto: RegisterDto): Promise<UserResponseDto> {
+    const user = await this.authService.registerAdmin(registerDto);
+    return plainToInstance(UserResponseDto, user, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Post('login')

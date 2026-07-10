@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, InternalServerErrorException } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -16,10 +16,23 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'secretKey',
-        signOptions: { expiresIn: '3600s' },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET');
+        const expiresIn = configService.get<string>('JWT_EXPIRES_IN');
+        if (!secret || !expiresIn) {
+          throw new InternalServerErrorException(
+            'JWT_SECRET and JWT_EXPIRES_IN environment variables are required.',
+          );
+        }
+        return {
+          secret,
+          signOptions: {
+            expiresIn: !isNaN(Number(expiresIn))
+              ? Number(expiresIn)
+              : (expiresIn as unknown as number),
+          },
+        };
+      },
     }),
   ],
   controllers: [AuthController],

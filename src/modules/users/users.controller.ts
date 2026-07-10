@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -21,14 +22,17 @@ import {
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
+import { plainToInstance } from 'class-transformer';
 import type { Request } from 'express';
 import { diskStorage } from 'multer';
 
+import { ErrorMessages } from '../../common/constants/error-messages.constant';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { ensureDirExists, getUploadPath } from '../../common/utils/file-helper';
 
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 
@@ -43,9 +47,15 @@ export class UsersController {
   @ApiOperation({ summary: 'Lấy thông tin cá nhân của người dùng hiện tại' })
   @ApiResponse({ status: 200, description: 'Lấy profile thành công' })
   @ApiResponse({ status: 401, description: 'Chưa xác thực' })
-  async getProfile(@Req() req: Request): Promise<User | null> {
+  async getProfile(@Req() req: Request): Promise<UserResponseDto> {
     const user = req.user as User;
-    return this.usersService.findOne(user.id);
+    const dbUser = await this.usersService.findOne(user.id);
+    if (!dbUser) {
+      throw new NotFoundException(ErrorMessages.USER_NOT_FOUND);
+    }
+    return plainToInstance(UserResponseDto, dbUser, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Patch('profile')
@@ -56,9 +66,15 @@ export class UsersController {
   async updateProfile(
     @Req() req: Request,
     @Body() updateProfileDto: UpdateProfileDto,
-  ): Promise<User | null> {
+  ): Promise<UserResponseDto> {
     const user = req.user as User;
-    return this.usersService.updateProfile(user.id, updateProfileDto);
+    const dbUser = await this.usersService.updateProfile(user.id, updateProfileDto);
+    if (!dbUser) {
+      throw new NotFoundException(ErrorMessages.USER_NOT_FOUND);
+    }
+    return plainToInstance(UserResponseDto, dbUser, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Patch('change-password')
@@ -111,10 +127,7 @@ export class UsersController {
       }),
       fileFilter: (_req, file, cb) => {
         if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
-          return cb(
-            new BadRequestException('Chỉ cho phép tải lên các tệp hình ảnh (jpg, jpeg, png, gif)'),
-            false,
-          );
+          return cb(new BadRequestException(ErrorMessages.INVALID_IMAGE_TYPE), false);
         }
         cb(null, true);
       },
@@ -126,12 +139,18 @@ export class UsersController {
   async uploadAvatar(
     @Req() req: Request,
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<User | null> {
+  ): Promise<UserResponseDto> {
     if (!file) {
-      throw new BadRequestException('Vui lòng chọn tệp hình ảnh để tải lên');
+      throw new BadRequestException(ErrorMessages.NO_FILE_UPLOADED);
     }
     const user = req.user as User;
     const avatarPath = getUploadPath(file.filename, 'avatars');
-    return this.usersService.updateAvatar(user.id, avatarPath);
+    const dbUser = await this.usersService.updateAvatar(user.id, avatarPath);
+    if (!dbUser) {
+      throw new NotFoundException(ErrorMessages.USER_NOT_FOUND);
+    }
+    return plainToInstance(UserResponseDto, dbUser, {
+      excludeExtraneousValues: true,
+    });
   }
 }

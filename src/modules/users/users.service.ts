@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 
+import { ErrorMessages } from '../../common/constants/error-messages.constant';
 import { deleteFile } from '../../common/utils/file-helper';
 
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -75,7 +76,7 @@ export class UsersService {
   async updateAvatar(userId: string, avatarPath: string): Promise<User | null> {
     const user = await this.findOne(userId);
     if (!user) {
-      throw new NotFoundException('Không tìm thấy tài khoản người dùng');
+      throw new NotFoundException(ErrorMessages.USER_NOT_FOUND);
     }
 
     if (user.avatar) {
@@ -94,12 +95,12 @@ export class UsersService {
     const { oldPassword, newPassword } = changePasswordDto;
     const user = await this.findOneWithPassword(userId);
     if (!user) {
-      throw new NotFoundException('Không tìm thấy tài khoản người dùng');
+      throw new NotFoundException(ErrorMessages.USER_NOT_FOUND);
     }
 
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
-      throw new BadRequestException('Mật khẩu cũ không chính xác');
+      throw new BadRequestException(ErrorMessages.INCORRECT_OLD_PASSWORD);
     }
 
     const salt = await bcrypt.genSalt();

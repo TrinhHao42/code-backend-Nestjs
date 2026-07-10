@@ -6,7 +6,7 @@ Dự án áp dụng bộ quy chuẩn dưới đây để đảm bảo chất lư
 
 ## 1. Database & TypeORM
 
-* **1.1 Cấu hình kết nối**: Tất cả cấu hình Database (host, port, username, password, database name) phải được đọc từ biến môi trường thông qua `process.env`. Không hardcode thông tin kết nối.
+* **1.1 Cấu hình kết nối**: Tất cả cấu hình Database (host, port, username, password, database name) phải được đọc từ biến môi trường thông qua `process.env`. Không hardcode thông tin kết nối và **tuyệt đối không sử dụng các giá trị dự phòng (fallback/default values) trong mã nguồn**. Nếu thiếu bất kỳ cấu hình bắt buộc nào, ứng dụng phải ném ra lỗi để dừng khởi chạy ngay lập tức.
 * **1.2 Quản lý Entities & Modules**:
   * Đăng ký cấu hình TypeORM bằng `TypeOrmModule.forRoot(dataSourceOptions)` ở `AppModule`.
   * Khai báo thực thể (`entities`) thông qua `TypeOrmModule.forFeature([Entity])` tại từng Module chức năng tương ứng.
@@ -33,8 +33,8 @@ Dự án áp dụng bộ quy chuẩn dưới đây để đảm bảo chất lư
 
 ## 3. Chuẩn NestJS & Khung phát triển
 
-* **3.1 Cấu hình JWT**: Sử dụng `registerAsync` kết hợp cùng `ConfigService` để nạp khóa bí mật và thời hạn sống của Token từ biến môi trường.
-* **3.2 Quản lý biến môi trường**: Sử dụng `ConfigModule` và `ConfigService` cho các cấu hình ứng dụng để quản lý tập trung và an toàn.
+* **3.1 Cấu hình JWT**: Sử dụng `registerAsync` kết hợp cùng `ConfigService` để nạp khóa bí mật (`JWT_SECRET`) và thời hạn sống của Token (`JWT_EXPIRES_IN`) từ biến môi trường. **Tuyệt đối cấm sử dụng các giá trị dự phòng (fallback/default values) trong mã nguồn**. Nếu thiếu cấu hình, hệ thống phải ném lỗi `InternalServerErrorException` ngay lập tức.
+* **3.2 Quản lý biến môi trường**: Sử dụng `ConfigModule` và `ConfigService` cho các cấu hình ứng dụng để quản lý tập trung và an toàn. Bắt buộc phải có kiểm tra hợp lệ cấu hình ứng dụng ở startup.
 * **3.3 Validation Global**: Cấu hình `ValidationPipe` toàn cục với các thiết lập:
   ```typescript
   app.useGlobalPipes(
@@ -76,14 +76,14 @@ Dự án áp dụng bộ quy chuẩn dưới đây để đảm bảo chất lư
 * **5.1 Phân tách tầng xử lý**: Controller chỉ điều phối request/response và gọi Service xử lý. Không viết logic nghiệp vụ hay truy vấn DB trực tiếp trong Controller.
 * **5.2 entities**: Đặt các class Entity trong thư mục `entities/` riêng biệt.
 * **5.3 DTO (Data Transfer Object)**: Sử dụng class-validator cho các request DTO để xác thực dữ liệu đầu vào. Tách biệt rõ ràng giữa Request DTO và Response DTO.
-* **5.4 Chuẩn hóa Response**: Tránh trả về trực tiếp thực thể DB (raw entity) cho Client để tránh rò rỉ dữ liệu nhạy cảm. Thực hiện chuyển đổi và format thông qua DTO hoặc Class Serialization.
+* **5.4 Chuẩn hóa Response**: Tránh trả về trực tiếp thực thể DB (raw entity) cho Client để tránh rò rỉ dữ liệu nhạy cảm. Thực hiện chuyển đổi và format thông qua DTO hoặc Class Serialization. Tất cả các Response phải trả về thông qua một DTO.
 
 ---
 
 ## 6. Bảo mật và Logic Nghiệp vụ
 
 * **6.1 Mã hóa mật khẩu**: Mật khẩu phải được băm (hash) bằng thư viện `bcrypt` trước khi lưu vào DB. Tuyệt đối không trả về trường `password` trong các API phản hồi.
-* **6.2 Quản lý Key bí mật**: Khóa bí mật JWT (`JWT_SECRET`) phải đồng nhất ở mọi vị trí cấu hình. Tuyệt đối tránh việc khai báo các fallback key khác nhau trong mã nguồn.
+* **6.2 Quản lý Key bí mật**: Khóa bí mật JWT (`JWT_SECRET`) phải đồng nhất ở mọi vị trí cấu hình và được quản lý an toàn. **Tuyệt đối không khai báo bất kỳ giá trị mặc định/dự phòng (fallback keys) nào trong mã nguồn** (ví dụ: `|| 'secretKey'`). Thiếu cấu hình bắt buộc phải dừng ứng dụng và báo lỗi.
 * **6.3 File Upload & Static Paths**: Quản lý đường dẫn tập tin tải lên nhất quán, không lặp prefix đường dẫn và đảm bảo kiểm tra định dạng tập tin.
 * **6.4 Kiểm tra định dạng file và dung lượng file**: Khi người dùng upload file, hệ thống phải xác thực xem file có đúng loại được phép và có vượt quá dung lượng tối đa hay không trước khi lưu.
 * **6.5 Xóa tập tin vật lý**: Hàm xóa file phải kiểm tra và xử lý chuẩn xác đường dẫn tương đối (có hoặc không có dấu gạch chéo đầu `/`).
