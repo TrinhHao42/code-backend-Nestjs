@@ -1,6 +1,8 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
+import { User } from '../users/entities/user.entity';
+
 import { AuthService } from './auth.service';
 import { AdminLoginDto } from './dto/admin-login.dto';
 import { LoginDto } from './dto/login.dto';
@@ -16,7 +18,7 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'Đăng ký thành công' })
   @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
   @ApiResponse({ status: 409, description: 'Email đã tồn tại' })
-  async register(@Body() registerDto: RegisterDto) {
+  async register(@Body() registerDto: RegisterDto): Promise<Omit<User, 'password'>> {
     return this.authService.register(registerDto);
   }
 
@@ -25,7 +27,7 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'Đăng ký Admin thành công' })
   @ApiResponse({ status: 400, description: 'Dữ liệu không hợp lệ' })
   @ApiResponse({ status: 409, description: 'Email đã tồn tại' })
-  async registerAdmin(@Body() registerDto: RegisterDto) {
+  async registerAdmin(@Body() registerDto: RegisterDto): Promise<Omit<User, 'password'>> {
     return this.authService.registerAdmin(registerDto);
   }
 
@@ -37,10 +39,10 @@ export class AuthController {
     description: 'Đăng nhập thành công, trả về Access Token',
   })
   @ApiResponse({
-    status: 401,
+    status: 400,
     description: 'Email hoặc mật khẩu không chính xác',
   })
-  async login(@Body() loginDto: LoginDto) {
+  async login(@Body() loginDto: LoginDto): Promise<{ accessToken: string }> {
     return this.authService.login(loginDto);
   }
 
@@ -52,10 +54,14 @@ export class AuthController {
     description: 'Đăng nhập thành công, trả về Access Token',
   })
   @ApiResponse({
-    status: 401,
-    description: 'Sai thông tin hoặc không có quyền Admin',
+    status: 400,
+    description: 'Email hoặc mật khẩu không chính xác',
   })
-  async adminLogin(@Body() adminLoginDto: AdminLoginDto) {
+  @ApiResponse({
+    status: 403,
+    description: 'Bạn không có quyền truy cập vào khu vực Admin',
+  })
+  async adminLogin(@Body() adminLoginDto: AdminLoginDto): Promise<{ accessToken: string }> {
     return this.authService.adminLogin(adminLoginDto);
   }
 }

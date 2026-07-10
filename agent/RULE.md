@@ -85,8 +85,9 @@ Dự án áp dụng bộ quy chuẩn dưới đây để đảm bảo chất lư
 * **6.1 Mã hóa mật khẩu**: Mật khẩu phải được băm (hash) bằng thư viện `bcrypt` trước khi lưu vào DB. Tuyệt đối không trả về trường `password` trong các API phản hồi.
 * **6.2 Quản lý Key bí mật**: Khóa bí mật JWT (`JWT_SECRET`) phải đồng nhất ở mọi vị trí cấu hình. Tuyệt đối tránh việc khai báo các fallback key khác nhau trong mã nguồn.
 * **6.3 File Upload & Static Paths**: Quản lý đường dẫn tập tin tải lên nhất quán, không lặp prefix đường dẫn và đảm bảo kiểm tra định dạng tập tin.
-* **6.4 Xóa tập tin vật lý**: Hàm xóa file phải kiểm tra và xử lý chuẩn xác đường dẫn tương đối (có hoặc không có dấu gạch chéo đầu `/`).
-* **6.5 User Enumeration**: Không thông báo chi tiết tài khoản tồn tại hay không khi đăng nhập thất bại.
+* **6.4 Kiểm tra định dạng file và dung lượng file**: Khi người dùng upload file, hệ thống phải xác thực xem file có đúng loại được phép và có vượt quá dung lượng tối đa hay không trước khi lưu.
+* **6.5 Xóa tập tin vật lý**: Hàm xóa file phải kiểm tra và xử lý chuẩn xác đường dẫn tương đối (có hoặc không có dấu gạch chéo đầu `/`).
+* **6.6 User Enumeration**: Không thông báo chi tiết tài khoản tồn tại hay không khi đăng nhập thất bại.
 
 ---
 
