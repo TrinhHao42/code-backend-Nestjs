@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { dataSourceOptions } from './config/typeorm.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { GiftsModule } from './modules/gifts/gifts.module';
+import { RedemptionsModule } from './modules/redemptions/redemptions.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -18,6 +19,7 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     UsersModule,
     GiftsModule,
+    RedemptionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

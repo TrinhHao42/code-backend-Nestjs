@@ -16,4 +16,9 @@ export const ErrorMessages = {
   INVALID_ACCOUNT: 'Tài khoản không hợp lệ',
 
   INVALID_PATH_ACCESS: 'Truy cập đường dẫn không hợp lệ',
+
+  GIFT_OUT_OF_STOCK: 'Quà tặng này đã hết hàng',
+  INSUFFICIENT_POINTS: 'Bạn không đủ điểm để đổi quà tặng này',
+  REDEMPTION_NOT_FOUND: 'Không tìm thấy thông tin giao dịch đổi quà',
+  REDEMPTION_ALREADY_CANCELLED: 'Giao dịch đổi quà này đã bị hủy trước đó',
 } as const;

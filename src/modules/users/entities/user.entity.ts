@@ -31,6 +31,9 @@ export class User {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role: UserRole;
 
+  @Column({ type: 'int', default: 1000 })
+  points: number;
+
   @CreateDateColumn()
   createdAt: Date;
 
