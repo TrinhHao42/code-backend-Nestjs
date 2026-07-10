@@ -1,7 +1,9 @@
 import * as bcrypt from 'bcrypt';
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class SeedData1783572596375 implements MigrationInterface {
+export class SeedData1783675377794 implements MigrationInterface {
+  name = 'SeedData1783675377794';
+
   public async up(queryRunner: QueryRunner): Promise<void> {
     const salt = await bcrypt.genSalt(10);
     const adminPassword = await bcrypt.hash('Admin123@', salt);
@@ -13,9 +15,9 @@ export class SeedData1783572596375 implements MigrationInterface {
     )) as unknown[];
     if (adminExists.length === 0) {
       await queryRunner.query(`
-                INSERT INTO "users" ("email", "password", "fullName", "role")
-                VALUES ('admin@example.com', '${adminPassword}', 'System Administrator', 'admin');
-            `);
+        INSERT INTO "users" ("email", "password", "fullName", "role", "points")
+        VALUES ('admin@example.com', '${adminPassword}', 'System Administrator', 'admin', 1000);
+      `);
     }
 
     // Insert User (Nếu chưa tồn tại)
@@ -24,9 +26,9 @@ export class SeedData1783572596375 implements MigrationInterface {
     )) as unknown[];
     if (userExists.length === 0) {
       await queryRunner.query(`
-                INSERT INTO "users" ("email", "password", "fullName", "role")
-                VALUES ('user@example.com', '${userPassword}', 'Regular User', 'user');
-            `);
+        INSERT INTO "users" ("email", "password", "fullName", "role", "points")
+        VALUES ('user@example.com', '${userPassword}', 'Regular User', 'user', 1000);
+      `);
     }
 
     const gifts = [

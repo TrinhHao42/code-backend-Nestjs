@@ -24,13 +24,11 @@ export function deleteFile(filePath: string): void {
   }
 }
 
-
 export function ensureDirExists(dirPath: string): void {
   if (!existsSync(dirPath)) {
     mkdirSync(dirPath, { recursive: true });
   }
 }
-
 
 export function getUploadPath(filename: string, subDir = 'avatars'): string {
   const prefix = '/uploads';

@@ -24,6 +24,10 @@ export class UserResponseDto {
   @Expose()
   role: UserRole;
 
+  @ApiProperty({ example: 1000 })
+  @Expose()
+  points: number;
+
   @ApiProperty({ example: '2026-07-10T02:00:00.000Z' })
   @Expose()
   createdAt: Date;
