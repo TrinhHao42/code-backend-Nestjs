@@ -7,13 +7,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --accent-color: #6366f1;
-            --accent-hover: #4f46e5;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
+            --bg-primary: #f0f4f8;
+            --bg-secondary: #ffffff;
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
             --success-color: #10b981;
             --error-color: #ef4444;
         }
@@ -45,7 +45,7 @@
         .logo {
             font-size: 1.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-decoration: none;
@@ -72,6 +72,7 @@
             border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
 
         .form-grid {
@@ -108,7 +109,7 @@
 
         .btn-action {
             background-color: var(--accent-color);
-            color: var(--text-main);
+            color: #ffffff;
             border: none;
             padding: 0.75rem 1.5rem;
             border-radius: 8px;
@@ -125,6 +126,7 @@
             overflow-x: auto;
             border: 1px solid var(--border-color);
             border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
 
         table {
@@ -140,7 +142,7 @@
         }
 
         th {
-            background-color: rgba(15, 23, 42, 0.5);
+            background-color: #f8fafc;
             color: var(--text-muted);
             font-weight: 600;
         }
@@ -152,20 +154,22 @@
 
         .btn-table-edit {
             background-color: var(--success-color);
-            color: var(--text-main);
+            color: #ffffff;
             border: none;
             padding: 0.4rem 0.8rem;
             border-radius: 6px;
             cursor: pointer;
+            font-weight: 600;
         }
 
         .btn-table-delete {
             background-color: var(--error-color);
-            color: var(--text-main);
+            color: #ffffff;
             border: none;
             padding: 0.4rem 0.8rem;
             border-radius: 6px;
             cursor: pointer;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -252,7 +256,8 @@
                 
                 if (!response.ok) throw new Error('Không thể tải danh sách quà tặng');
                 
-                const gifts = await response.json();
+                const result = await response.json();
+                const gifts = result.data || [];
                 const tbody = document.getElementById('giftsTableBody');
                 
                 tbody.innerHTML = gifts.map(gift => `

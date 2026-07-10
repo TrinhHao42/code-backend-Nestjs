@@ -7,13 +7,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --accent-color: #6366f1;
-            --accent-hover: #4f46e5;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
+            --bg-primary: #f0f4f8;
+            --bg-secondary: #ffffff;
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
             --success-color: #10b981;
         }
 
@@ -44,7 +44,7 @@
         .logo {
             font-size: 1.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-decoration: none;
@@ -66,7 +66,55 @@
             display: flex;
             flex-direction: column;
             gap: 2rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        .avatar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-color);
+            object-fit: cover;
+            background-color: var(--bg-primary);
+        }
+
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .btn-upload {
+            border: 1px dashed var(--accent-color);
+            color: var(--accent-color);
+            background-color: transparent;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-upload:hover {
+            background-color: rgba(37, 99, 235, 0.1);
+        }
+
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
         }
 
         h2 {
@@ -107,7 +155,7 @@
 
         .btn-update {
             background-color: var(--accent-color);
-            color: var(--text-main);
+            color: #ffffff;
             border: none;
             padding: 0.75rem;
             border-radius: 8px;
@@ -132,6 +180,16 @@
     <main>
         <div class="profile-card">
             <h2>Hồ sơ cá nhân</h2>
+            
+            <!-- Avatar Upload Area -->
+            <div class="avatar-container">
+                <img id="avatarImg" class="avatar-preview" src="https://www.w3schools.com/howto/img_avatar.png" alt="Avatar">
+                <div class="upload-btn-wrapper">
+                    <button class="btn-upload">Chọn ảnh mới</button>
+                    <input type="file" id="avatarFile" accept="image/*" onchange="uploadAvatar()">
+                </div>
+            </div>
+
             <form id="profileForm" onsubmit="updateProfile(event)">
                 <div class="form-group" style="margin-bottom: 1.5rem;">
                     <label>Email (Tài khoản)</label>
@@ -173,8 +231,52 @@
                 document.getElementById('email').value = data.email;
                 document.getElementById('fullName').value = data.fullName;
                 document.getElementById('role').value = data.role.toUpperCase();
+                
+                // Nếu user đã có avatar thì lấy ảnh đó, không thì dùng ảnh mặc định
+                if (data.avatar) {
+                    document.getElementById('avatarImg').src = data.avatar;
+                } else {
+                    document.getElementById('avatarImg').src = 'https://www.w3schools.com/howto/img_avatar.png';
+                }
             } catch (err) {
                 console.error(err);
+            }
+        }
+
+        // Tải lên avatar mới
+        async function uploadAvatar() {
+            const fileInput = document.getElementById('avatarFile');
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/v1/users/upload/avatar', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || 'Tải ảnh đại diện thất bại');
+                }
+
+                alert('Cập nhật ảnh đại diện thành công!');
+                
+                // Cập nhật lại src của thẻ img từ đường dẫn avatar mới trả về
+                if (data.avatar) {
+                    document.getElementById('avatarImg').src = data.avatar;
+                }
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                // Reset input để có thể chọn lại cùng 1 file
+                fileInput.value = '';
             }
         }
 
