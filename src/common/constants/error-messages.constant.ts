@@ -24,5 +24,6 @@ export const ErrorMessages = {
 
   JWT_CONFIG_REQUIRED: 'JWT_SECRET and JWT_EXPIRES_IN environment variables are required.',
   JWT_SECRET_REQUIRED: 'JWT_SECRET environment variable is required.',
-  DB_CONFIG_REQUIRED: 'Database configuration environment variables (DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE) are required.',
+  DB_CONFIG_REQUIRED:
+    'Database configuration environment variables (DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE) are required.',
 } as const;

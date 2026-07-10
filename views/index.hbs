@@ -267,7 +267,12 @@
                         </a>
                     `;
                 } else {
+                    // Hiển thị số lượng token/điểm của user kế bên avatar
+                    const userPoints = localStorage.getItem('userPoints') || '0';
                     html += `
+                        <span class="user-points-display" style="display: flex; align-items: center; gap: 4px; font-weight: 700; color: #ffffff; background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); padding: 0.35rem 0.8rem; border-radius: 999px; font-size: 0.9rem; box-shadow: 0 4px 6px -1px rgba(234, 179, 8, 0.2);">
+                            🪙 ${userPoints} Điểm
+                        </span>
                         <a href="/profile" style="display: flex; align-items: center; gap: 8px;">
                             <img src="${avatarUrl}" alt="Avatar" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent-color);">
                             Hồ sơ cá nhân
@@ -276,6 +281,23 @@
                 }
                 html += '<button onclick="logout()" class="btn-accent" style="margin-left:10px;">Đăng xuất</button>';
                 navbar.innerHTML = html;
+
+                // Cập nhật lại số điểm thực tế từ profile fetch được
+                try {
+                    const response = await fetch('/api/v1/users/profile', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (response.ok) {
+                        const profile = await response.json();
+                        localStorage.setItem('userPoints', profile.points);
+                        const pointsSpan = document.querySelector('.user-points-display');
+                        if (pointsSpan) {
+                            pointsSpan.innerHTML = `🪙 ${profile.points} Điểm`;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Không thể lấy điểm mới nhất', e);
+                }
             }
         }
 

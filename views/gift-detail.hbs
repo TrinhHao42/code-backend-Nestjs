@@ -130,14 +130,79 @@
         .meta-item strong {
             font-size: 1.1rem;
         }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .nav-links a, .nav-links button {
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-color);
+        }
+
+        .btn-accent {
+            background-color: var(--accent-color) !important;
+            color: #ffffff !important;
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .btn-accent:hover {
+            background-color: var(--accent-hover) !important;
+            transform: translateY(-2px);
+        }
+
+        .btn-redeem {
+            background-color: var(--success-color);
+            color: #ffffff;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-redeem:hover:not(:disabled) {
+            background-color: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-redeem:disabled {
+            background-color: var(--border-color);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
     </style>
 </head>
 <body>
     <header>
         <a href="/" class="logo">GiftShop</a>
-        <div>
-            <a href="/" id="backLink" style="color:var(--text-main); text-decoration:none;">Quay lại</a>
-        </div>
+        <nav class="nav-links" id="navbar">
+            <a href="/">Trang chủ</a>
+            <a href="/login" id="loginBtn">Đăng nhập</a>
+            <a href="/register" id="registerBtn" class="btn-accent">Đăng ký</a>
+        </nav>
     </header>
 
     <main>
@@ -156,8 +221,15 @@
                     <strong id="giftDate">--/--/----</strong>
                 </div>
             </div>
+            <div id="actionContainer" style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem; width: 100%;">
+                <!-- Nút đổi quà và thông báo sẽ render ở đây -->
+            </div>
+            <div style="margin-top: 1rem; text-align: center;">
+                <a href="/" id="backLink" style="color: var(--text-muted); text-decoration: none; font-size: 0.95rem; font-weight: 500;">← Quay lại danh sách</a>
+            </div>
         </div>
     </main>
+
 
     <script>
         // Lấy ID từ URL
@@ -175,8 +247,79 @@
             backLink.href = '/';
         }
 
+        let userPoints = 0;
+
+        // Quản lý trạng thái Navbar dựa vào Token
+        async function updateNavbar() {
+            const navbar = document.getElementById('navbar');
+
+            if (token) {
+                let avatarUrl = 'https://www.w3schools.com/howto/img_avatar.png';
+                let currentRole = role;
+                const cachedPoints = localStorage.getItem('userPoints') || '0';
+                userPoints = parseInt(cachedPoints, 10);
+
+                let html = '<a href="/">Trang chủ</a>';
+                if (currentRole === 'admin') {
+                    html += `
+                        <a href="/admin/gifts-management" class="btn-accent" style="display: flex; align-items: center; gap: 8px;">
+                            <img src="${avatarUrl}" alt="Avatar" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #ffffff;">
+                            Quản lý quà (Admin)
+                        </a>
+                    `;
+                } else {
+                    html += `
+                        <span class="user-points-display" style="display: flex; align-items: center; gap: 4px; font-weight: 700; color: #ffffff; background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); padding: 0.35rem 0.8rem; border-radius: 999px; font-size: 0.9rem; box-shadow: 0 4px 6px -1px rgba(234, 179, 8, 0.2);">
+                            🪙 ${userPoints} Điểm
+                        </span>
+                        <a href="/profile" style="display: flex; align-items: center; gap: 8px;">
+                            <img src="${avatarUrl}" alt="Avatar" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid var(--accent-color);">
+                            Hồ sơ cá nhân
+                        </a>
+                    `;
+                }
+                html += '<button onclick="logout()" class="btn-accent" style="margin-left:10px;">Đăng xuất</button>';
+                navbar.innerHTML = html;
+
+                // Fetch profile để lấy thông tin mới nhất
+                try {
+                    const response = await fetch('/api/v1/users/profile', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (response.ok) {
+                        const profile = await response.json();
+                        userPoints = profile.points;
+                        localStorage.setItem('userPoints', profile.points);
+                        localStorage.setItem('userRole', profile.role);
+                        if (profile.avatar) {
+                            avatarUrl = profile.avatar;
+                        }
+                        
+                        // Re-render navbar with updated values
+                        const pointsSpan = document.querySelector('.user-points-display');
+                        if (pointsSpan) {
+                            pointsSpan.innerHTML = `🪙 ${profile.points} Điểm`;
+                        }
+                        
+                        // Cập nhật lại nút đổi quà dựa trên điểm mới
+                        if (window.currentGift) {
+                            renderRedeemButton(window.currentGift);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Không thể lấy thông tin profile cho navbar', e);
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('userPoints');
+            window.location.href = '/';
+        }
+
         async function fetchGiftDetail() {
-            // Admin có quyền xem cả quà bị ẩn, user chỉ xem quà available
             const url = role === 'admin' ? `/api/v1/admin/gifts/${giftId}` : `/api/v1/gifts/${giftId}`;
             const headers = {};
             if (token) {
@@ -194,6 +337,7 @@
                 }
 
                 const gift = await response.json();
+                window.currentGift = gift;
                 document.getElementById('giftName').innerText = gift.name;
                 document.getElementById('giftPoints').innerText = `${gift.pointsRequired} Điểm`;
                 document.getElementById('giftDesc').innerText = gift.description || 'Chưa có mô tả chi tiết cho sản phẩm này.';
@@ -210,11 +354,89 @@
                     statusBadge.innerText = 'Tạm ẩn';
                     statusBadge.className = 'gift-status status-unavailable';
                 }
+
+                renderRedeemButton(gift);
             } catch (err) {
                 document.getElementById('giftDesc').innerText = err.message;
             }
         }
 
+        function renderRedeemButton(gift) {
+            const container = document.getElementById('actionContainer');
+            if (!token) {
+                container.innerHTML = `
+                    <button class="btn-redeem" onclick="window.location.href='/login'">
+                        Đăng nhập để đổi quà
+                    </button>
+                `;
+                return;
+            }
+
+            if (role === 'admin') {
+                container.innerHTML = `
+                    <p style="color: var(--text-muted); text-align: center; font-size: 0.95rem;">
+                        Tài khoản Admin không tham gia đổi quà.
+                    </p>
+                `;
+                return;
+            }
+
+            let isDisabled = false;
+            let buttonText = 'Đổi Quà Ngay';
+            let messageHtml = '';
+
+            if (gift.stock <= 0) {
+                isDisabled = true;
+                buttonText = 'Hết hàng';
+                messageHtml = `<p style="color: var(--error-color); text-align: center; font-size: 0.9rem; font-weight: 600;">Sản phẩm này đã tạm thời hết hàng.</p>`;
+            } else if (userPoints < gift.pointsRequired) {
+                isDisabled = true;
+                buttonText = 'Không đủ điểm';
+                messageHtml = `<p style="color: var(--error-color); text-align: center; font-size: 0.9rem; font-weight: 600;">Bạn cần thêm ${gift.pointsRequired - userPoints} điểm để đổi quà này.</p>`;
+            }
+
+            container.innerHTML = `
+                ${messageHtml}
+                <button class="btn-redeem" ${isDisabled ? 'disabled' : ''} onclick="redeemGift(${gift.pointsRequired})">
+                    🎁 ${buttonText}
+                </button>
+            `;
+        }
+
+        async function redeemGift(pointsRequired) {
+            if (userPoints < pointsRequired) {
+                alert('Bạn không đủ điểm để đổi quà này!');
+                return;
+            }
+
+            if (!confirm('Bạn có chắc chắn muốn đổi món quà này không? Số điểm của bạn sẽ bị khấu trừ.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/redemptions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ giftId })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert('Đổi quà thành công!');
+                    window.location.reload();
+                } else {
+                    alert(result.message || 'Đổi quà thất bại');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Có lỗi xảy ra khi thực hiện đổi quà');
+            }
+        }
+
+        updateNavbar();
         if (giftId) {
             fetchGiftDetail();
         }
