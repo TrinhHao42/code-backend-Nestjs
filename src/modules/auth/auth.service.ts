@@ -7,6 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
+import { ErrorMessages } from '../../common/constants/error-messages.constant';
 import { User, UserRole } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 
@@ -25,7 +26,7 @@ export class AuthService {
 
     const isEmailExist = await this.usersService.findByEmail(email);
     if (isEmailExist) {
-      throw new ConflictException('Email này đã được đăng ký sử dụng');
+      throw new ConflictException(ErrorMessages.EMAIL_ALREADY_REGISTERED);
     }
 
     const salt = await bcrypt.genSalt();
@@ -46,7 +47,7 @@ export class AuthService {
 
     const isEmailExist = await this.usersService.findByEmail(email);
     if (isEmailExist) {
-      throw new ConflictException('Email này đã được đăng ký sử dụng');
+      throw new ConflictException(ErrorMessages.EMAIL_ALREADY_REGISTERED);
     }
 
     const salt = await bcrypt.genSalt();
@@ -71,7 +72,7 @@ export class AuthService {
     const user = await this.validateUser(loginDto);
 
     if (user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Bạn không có quyền truy cập vào khu vực Admin');
+      throw new ForbiddenException(ErrorMessages.ADMIN_ACCESS_DENIED);
     }
 
     return this.generateToken(user);
@@ -82,7 +83,7 @@ export class AuthService {
     const user = await this.usersService.findByEmailWithPassword(email);
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new BadRequestException('Email hoặc mật khẩu không chính xác');
+      throw new BadRequestException(ErrorMessages.INCORRECT_EMAIL_PASSWORD);
     }
 
     return user;

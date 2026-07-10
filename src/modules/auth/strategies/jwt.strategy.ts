@@ -1,8 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
+import { ErrorMessages } from '../../../common/constants/error-messages.constant';
 import { UsersService } from '../../users/users.service';
 
 @Injectable()
@@ -14,14 +15,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET') || 'secretKey',
+      secretOrKey: (() => {
+        const secret = configService.get<string>('JWT_SECRET');
+        if (!secret) {
+          throw new InternalServerErrorException('JWT_SECRET environment variable is required.');
+        }
+        return secret;
+      })(),
     });
   }
 
   async validate(payload: { sub: string; email: string; role: string }) {
     const user = await this.usersService.findOne(payload.sub);
     if (!user) {
-      throw new UnauthorizedException('Tài khoản không hợp lệ');
+      throw new UnauthorizedException(ErrorMessages.INVALID_ACCOUNT);
     }
     return user;
   }
