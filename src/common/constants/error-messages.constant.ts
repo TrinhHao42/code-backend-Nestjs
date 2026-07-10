@@ -21,4 +21,8 @@ export const ErrorMessages = {
   INSUFFICIENT_POINTS: 'Bạn không đủ điểm để đổi quà tặng này',
   REDEMPTION_NOT_FOUND: 'Không tìm thấy thông tin giao dịch đổi quà',
   REDEMPTION_ALREADY_CANCELLED: 'Giao dịch đổi quà này đã bị hủy trước đó',
+
+  JWT_CONFIG_REQUIRED: 'JWT_SECRET and JWT_EXPIRES_IN environment variables are required.',
+  JWT_SECRET_REQUIRED: 'JWT_SECRET environment variable is required.',
+  DB_CONFIG_REQUIRED: 'Database configuration environment variables (DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE) are required.',
 } as const;

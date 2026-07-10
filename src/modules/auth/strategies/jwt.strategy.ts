@@ -18,7 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       secretOrKey: (() => {
         const secret = configService.get<string>('JWT_SECRET');
         if (!secret) {
-          throw new InternalServerErrorException('JWT_SECRET environment variable is required.');
+          throw new InternalServerErrorException(ErrorMessages.JWT_SECRET_REQUIRED);
         }
         return secret;
       })(),
