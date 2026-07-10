@@ -2,6 +2,8 @@ import { InternalServerErrorException } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import { DataSource, DataSourceOptions } from 'typeorm';
 
+import { ErrorMessages } from '../common/constants/error-messages.constant';
+
 dotenv.config();
 
 const dbHost = process.env.DB_HOST;
@@ -11,9 +13,7 @@ const dbPassword = process.env.DB_PASSWORD;
 const dbDatabase = process.env.DB_DATABASE;
 
 if (!dbHost || !dbPort || !dbUsername || !dbPassword || !dbDatabase) {
-  throw new InternalServerErrorException(
-    'Database configuration environment variables (DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE) are required.',
-  );
+  throw new InternalServerErrorException(ErrorMessages.DB_CONFIG_REQUIRED);
 }
 
 export const dataSourceOptions: DataSourceOptions = {

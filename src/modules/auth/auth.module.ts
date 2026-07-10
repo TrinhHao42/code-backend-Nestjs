@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
+import { ErrorMessages } from '../../common/constants/error-messages.constant';
 import { UsersModule } from '../users/users.module';
 
 import { AuthController } from './auth.controller';
@@ -20,10 +21,9 @@ import { JwtStrategy } from './strategies/jwt.strategy';
         const secret = configService.get<string>('JWT_SECRET');
         const expiresIn = configService.get<string>('JWT_EXPIRES_IN');
         if (!secret || !expiresIn) {
-          throw new InternalServerErrorException(
-            'JWT_SECRET and JWT_EXPIRES_IN environment variables are required.',
-          );
+          throw new InternalServerErrorException(ErrorMessages.JWT_CONFIG_REQUIRED);
         }
+
         return {
           secret,
           signOptions: {
